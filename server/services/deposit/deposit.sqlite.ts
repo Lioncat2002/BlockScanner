@@ -1,7 +1,8 @@
 import { prisma } from "@/server/db/db";
 import { BaseDeposit, DepositRepositoryDto } from "@/server/domain/deposit.domain";
+import { Response } from "@/server/utils/IResponse";
 
-export async function CreateDeposits(newDeposits: DepositRepositoryDto[]) {
+export async function CreateDeposits(newDeposits: DepositRepositoryDto[]):Promise<Response<string>> {
   try {
     const deposits = await prisma.deposit.findMany();
     console.log("deposits:",deposits)
@@ -16,8 +17,19 @@ export async function CreateDeposits(newDeposits: DepositRepositoryDto[]) {
       });
     }
 
-    return { success: true, data: "ok" };
+    return {success:true,data:"ok",statusCode:201 };
   } catch (error) {
-    return { success: false, data: "failed to create", error: error };
+    console.log(error)
+    return {success:false,message:"failed to create",statusCode:500 };
   }
+}
+
+export async function getAllDeposits(start:number,size:number):Promise<Response<BaseDeposit[]>>{
+    try{
+        const deposits=await prisma.deposit.findMany()
+
+        return {success:true,data:deposits,statusCode:200 }
+    }catch(error){
+        return {success:false,message:"failed to get all deposits",statusCode:500 };
+    }
 }

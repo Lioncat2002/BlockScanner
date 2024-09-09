@@ -3,11 +3,16 @@
 import { ethers } from "ethers";
 import { depositABI, PROVIDER } from "../ethereum/provider";
 import {
+  BaseDeposit,
   DepositControllerDto,
   DepositServiceDto,
 } from "../domain/deposit.domain";
-import { CreateDepositsService } from "../services/deposit/deposit.service";
-
+import {
+  CreateDepositsService,
+  getAllDepositsService,
+} from "../services/deposit/deposit.service";
+import { Response } from "../utils/IResponse";
+import { sendNotification } from "../utils/telegram_bot";
 export async function putDeposit() {
   const depositContract = new ethers.Contract(
     process.env.BEACON_DEPOSIT_CONTRACT_ADDR!,
@@ -15,9 +20,10 @@ export async function putDeposit() {
     PROVIDER
   );
 
-  depositContract.on(
-    "DepositEvent",
-    async (pubkey, withdrawal_credentials, amount, signature, index, event) => {
+  depositContract.on("DepositEvent", async (event) => {
+    try {
+      const { pubkey, withdrawal_credentials, amount, signature, index } =
+        event.args;
       console.log(
         `New deposit - PubKey: ${pubkey}, Amount: ${ethers.formatEther(
           amount
@@ -33,14 +39,16 @@ export async function putDeposit() {
         hash: event.transactionHash,
         pubkey: pubkey,
       };
-      const response = await CreateDepositsService([deposit,]);
+      //store in db
+      const response = await CreateDepositsService([deposit]);
       if (!response.success) {
-        console.log({ status: 500, data: "failed", error: response.error });
+        console.log({ status: 500, data: "failed", error: response.message });
       }
       console.log(response);
-      // Process deposit, e.g., store in DB
+    } catch (error) {
+      console.log(error);
     }
-  );
+  });
 }
 
 export async function putAllDepositsInBatches() {
@@ -61,12 +69,14 @@ export async function putAllDepositsInBatches() {
     startBlock,
     latestBlock
   );
-  const deposits=[]
+  const deposits = [];
   // Process each deposit event
-  for(const event of depositEvents){
+  for (const event of depositEvents) {
     const block = await PROVIDER.getBlock(event.blockNumber);
-    //@ts-ignore
-    const { pubkey, withdrawal_credentials, amount, signature, index } =event.args;
+
+    const { pubkey, withdrawal_credentials, amount, signature, index } =
+      //@ts-ignore
+      event.args;
     const deposit: DepositServiceDto = {
       blockNumber: event.blockNumber,
       createdAt: Date.now() as unknown as bigint,
@@ -76,15 +86,32 @@ export async function putAllDepositsInBatches() {
       hash: event.transactionHash,
       pubkey: pubkey,
     };
-    deposits.push(deposit)
-    
+    deposits.push(deposit);
   }
 
   const response = await CreateDepositsService(deposits);
-    if (!response.success) {
-      return{ status: 500, data: "failed", error: response.error };
-    }
-    console.log(response);
+  if (!response.success) {
+    return { status: 500, data: "failed", error: response.message };
+  }
+  console.log(response);
 
   return { status: 201, data: "ok" };
+}
+
+export async function getAllDeposits(
+  start: number,
+  size: number
+): Promise<Response<BaseDeposit[]>> {
+  const response = await getAllDepositsService(start, size);
+  if (!response.success) {
+    return {
+      success: false,
+      message: "failed to get deposits",
+      statusCode: 500,
+    };
+  }
+  console.log(response);
+  sendNotification("new transaction received")
+
+  return { success: true, data: response.data, statusCode: 201 };
 }
