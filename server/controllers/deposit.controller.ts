@@ -66,7 +66,7 @@ export async function putDeposit() {
 }
 
 export async function putAllDeposits() {
-  const startBlock = process.env.START_BLOCK; // starting from this transaction
+  const startBlock = parseInt(process.env.START_BLOCK!); // starting from this transaction
   const depositContract = new ethers.Contract(
     process.env.BEACON_DEPOSIT_CONTRACT_ADDR!,
     depositABI,

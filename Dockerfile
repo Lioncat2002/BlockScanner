@@ -24,7 +24,13 @@ USER nextjs
 COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/prisma ./prisma
-RUN npx prisma db push
-RUN npm run build
+COPY --from=builder /app/public ./public
+
 CMD npm start
+
+FROM base AS dev
+ENV NODE_ENV=development
+RUN npm install
+COPY . .
+RUN npx prisma db push
+CMD npm run dev
