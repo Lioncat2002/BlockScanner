@@ -13,6 +13,8 @@ import {
 } from "../services/deposit/deposit.service";
 import { Response } from "../utils/IResponse";
 import { sendNotification } from "../utils/telegram_bot";
+import { CACHE } from "../lib/cache";
+import { faro } from "@grafana/faro-web-sdk";
 export async function putDeposit() {
   const depositContract = new ethers.Contract(
     process.env.BEACON_DEPOSIT_CONTRACT_ADDR!,
@@ -25,9 +27,9 @@ export async function putDeposit() {
     async (pubkey, withdrawal_credentials, amount, signature, index, event) => {
       try {
         if (!event.args) {
-          console.log(event, typeof event);
           return;
         }
+        
         console.log(
           `New deposit - PubKey: ${pubkey}, Amount: ${ethers.formatEther(
             amount
@@ -49,12 +51,14 @@ export async function putDeposit() {
         if (!response.success) {
           console.log({ status: 500, data: "failed", error: response.message });
         }
+        CACHE.pop();
+        CACHE.push({ data: deposit, exp: Date.now() + 3600 });
         sendNotification(`new transaction received: 
                         blockNumber: ${deposit.blockNumber}
                         blockTimestamp: ${deposit.blockTimestamp}
                         pubkey:${deposit.pubkey}`);
-        console.log(response);
       } catch (error) {
+        console.log(error)
         console.log("some thing went wrong");
       }
     }
@@ -104,7 +108,6 @@ export async function putAllDepositsInBatches() {
   if (!response.success) {
     return { status: 500, data: "failed", error: response.message };
   }
-  console.log(response);
 
   return { status: 201, data: "ok" };
 }
@@ -121,7 +124,10 @@ export async function getAllDeposits(
       statusCode: 500,
     };
   }
-  console.log(response);
 
   return { success: true, data: response.data, statusCode: 201 };
+}
+
+export async function getRealtimeDeposits(): Promise<Response<BaseDeposit>> {
+  return { success: true, statusCode: 200, data: { ...CACHE[0].data, id: 0 } };
 }

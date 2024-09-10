@@ -8,11 +8,24 @@ import { BaseDeposit } from "@/server/domain/deposit.domain";
 import { useEffect, useState } from "react";
 import { DataTable } from "./deposits/data-table";
 import { columns } from "./deposits/columns";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Home() {
   // Create Contract Object
-  const [deposits, setDeposits] = useState<BaseDeposit[]>([]);
-  // Event Listener for Deposits
+  const [newDeposits, setDeposits] = useState<BaseDeposit[]>([]);
+  const queryClient = useQueryClient();
+  // Fetch all deposits
+  const {
+    data: deposits,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["getAllDeposits", 0, 100],
+    queryFn: () => getAllDeposits(0, 100),
+    refetchInterval:60000//refetch every 1 min
+  });
+
+  
   useEffect(() => {
     async function getAllDepositsFromServer() {
       const response = await getAllDeposits(0, 100);
@@ -25,17 +38,18 @@ export default function Home() {
     getAllDepositsFromServer();
     async function putDepositsFromInfura() {
       const response = await putAllDepositsInBatches();
-      console.log(response);
     }
     putDepositsFromInfura();
     putDeposit();
 
     
   }, []);
-  console.log(deposits);
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={deposits} />
+      <DataTable
+        columns={columns}
+        data={deposits?.success === true ? deposits.data : []}
+      />
     </div>
   );
 }

@@ -9,8 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@grafana/faro-web-sdk": "^1.9.1",
+    "@grafana/faro-web-tracing": "^1.9.1",
     "@prisma/client": "^5.19.1",
     "@radix-ui/react-icons": "^1.3.0",
+    "@tanstack/react-query": "^5.55.4",
+    "@tanstack/react-query-devtools": "^5.55.4",
     "@tanstack/react-table": "^8.20.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
