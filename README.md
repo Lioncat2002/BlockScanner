@@ -33,3 +33,14 @@ Note: Initial load might take some time depending on the start block number set 
 - Load the dashboard template from `grafana\dashboard-template.json`
 - Load the sqlite db file from `prisma\dev.db`
 - You will be able to see the visualization.
+
+## Gallery:
+### Frontend:
+![image](https://github.com/user-attachments/assets/b4120ce8-d641-4e9a-89bf-06de731cabca)
+
+### Telegram notification:
+![image](https://github.com/user-attachments/assets/f5a799e6-a414-4d0f-b5dd-1866a9dfca62)
+
+### Grafana visualization:
+![image](https://github.com/user-attachments/assets/6f745618-158d-4733-afe1-d133ab1c9b91)
+
