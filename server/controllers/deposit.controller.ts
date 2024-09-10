@@ -53,10 +53,7 @@ export async function putDeposit() {
         }
         CACHE.pop();
         CACHE.push({ data: deposit, exp: Date.now() + 3600 });
-        sendNotification(`new transaction received: 
-                        blockNumber: ${deposit.blockNumber}
-                        blockTimestamp: ${deposit.blockTimestamp}
-                        pubkey:${deposit.pubkey}`);
+        sendNotification(`new transaction received:\nblockNumber: ${deposit.blockNumber}\nblockTimestamp: ${deposit.blockTimestamp}\npubkey:${deposit.pubkey}`);
       } catch (error) {
         console.log(error)
         console.log("some thing went wrong");
