@@ -46,6 +46,7 @@ export default function Home() {
   }, []);
   return (
     <div className="container mx-auto py-10">
+      <div className="font-bold text-4xl p-4">BlockScanner</div>
       <DataTable
         columns={columns}
         data={deposits?.success === true ? deposits.data : []}
