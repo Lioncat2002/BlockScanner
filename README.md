@@ -7,14 +7,9 @@ INFURA_MAIN_NET=
 BEACON_DEPOSIT_CONTRACT_ADDR=
 LOKI_API_KEY=
 TELEGRAM_BOT_TOKEN=
-USERS="1234546 181234565 6789055" # get your id from: https://web.telegram.org/k/#@getidsbot seperate multiple users with a space
+TELEGRAM_USERS="1234546 181234565 6789055" # get your id from: https://web.telegram.org/k/#@getidsbot seperate multiple users with a space
 GRAFANA_URL=
 ```
-
-### Installation with Docker:
-- Build the docker image with `docker build -t blockscan .`
-- Create a virtual docker volume for the sqlite database with `docker volume create sqlite_data`
-- Run the docker image with `docker run -d -p 8080:8080 -v sqlite_data:/app/prisma blockscan`
 
 ### Installation without Docker:
 - Add the above mentioned envs into a `.env` file
@@ -25,6 +20,14 @@ GRAFANA_URL=
 - For dev environment you can use `npm run dev`
 ```
 Note: Initial load might take some time depending on the start block number set in the .env file
+```
+### Installation with Docker:
+- Build the docker image with `docker build -t blockscan .`
+- Create a virtual docker volume for the sqlite database with `docker volume create sqlite_data`
+- Run the docker image with `docker run -d -p 8080:8080 -v sqlite_data:/app/prisma blockscan`
+```
+Note: When running using docker if an error is faced like ChunkLoadError: Loading chunk node_modules_next_dist_client_dev_noop_js failed.
+Please refresh the application and it should work
 ```
 ### Visualization with grafana:
 - Install the sqlite plugin with `grafana-cli plugins install frser-sqlite-datasource`

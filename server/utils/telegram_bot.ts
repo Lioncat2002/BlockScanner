@@ -4,7 +4,7 @@ import { Bot } from 'grammy'
 const BOT = new Bot(process.env.TELEGRAM_BOT_TOKEN!) 
 
 export async function sendNotification(data:string){
-    const users=process.env.USERS!.split(" ")
+    const users=process.env.TELEGRAM_USERS!.split(" ")
     for(const user of users){
         BOT.api.sendMessage(user,data)
     }
