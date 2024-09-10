@@ -20,43 +20,45 @@ export async function putDeposit() {
     PROVIDER
   );
 
-  depositContract.on("DepositEvent", async (event) => {
-    try {
-      if (!event.args) {
-        console.log(typeof event)
-        return;
-      }
-      const { pubkey, withdrawal_credentials, amount, signature, index } =
-        event.args;
-      console.log(
-        `New deposit - PubKey: ${pubkey}, Amount: ${ethers.formatEther(
-          amount
-        )}, Index: ${index}`
-      );
-      const block = await PROVIDER.getBlock(event.blockNumber);
-      const deposit: DepositServiceDto = {
-        blockNumber: event.blockNumber,
-        createdAt: Date.now() as unknown as bigint,
-        updatedAt: Date.now() as unknown as bigint,
-        blockTimestamp: block?.timestamp || 0,
-        fee: block?.baseFeePerGas || (0 as unknown as bigint),
-        hash: event.transactionHash,
-        pubkey: pubkey,
-      };
-      //store in db
-      const response = await CreateDepositsService([deposit]);
-      if (!response.success) {
-        console.log({ status: 500, data: "failed", error: response.message });
-      }
-      sendNotification(`new transaction received: 
+  depositContract.on(
+    "DepositEvent",
+    async (pubkey, withdrawal_credentials, amount, signature, index, event) => {
+      try {
+        if (!event.args) {
+          console.log(event, typeof event);
+          return;
+        }
+        console.log(
+          `New deposit - PubKey: ${pubkey}, Amount: ${ethers.formatEther(
+            amount
+          )}, Index: ${index}`
+        );
+        const blockNumber = await PROVIDER.getBlockNumber();
+        const block = await PROVIDER.getBlock(blockNumber);
+        const deposit: DepositServiceDto = {
+          blockNumber: blockNumber,
+          createdAt: Date.now() as unknown as bigint,
+          updatedAt: Date.now() as unknown as bigint,
+          blockTimestamp: block?.timestamp || 0,
+          fee: block?.baseFeePerGas || (0 as unknown as bigint),
+          hash: block?.hash || "",
+          pubkey: pubkey,
+        };
+        //store in db
+        const response = await CreateDepositsService([deposit]);
+        if (!response.success) {
+          console.log({ status: 500, data: "failed", error: response.message });
+        }
+        sendNotification(`new transaction received: 
                         blockNumber: ${deposit.blockNumber}
                         blockTimestamp: ${deposit.blockTimestamp}
                         pubkey:${deposit.pubkey}`);
-      console.log(response);
-    } catch (error) {
-      console.log("some thing went wrong");
+        console.log(response);
+      } catch (error) {
+        console.log("some thing went wrong");
+      }
     }
-  });
+  );
 }
 
 export async function putAllDepositsInBatches() {
@@ -78,9 +80,8 @@ export async function putAllDepositsInBatches() {
   );
   // Process each deposit event
 
-  
   // Execute all the promises in parallel
-  const deposits = []
+  const deposits = [];
   for (const event of depositEvents) {
     const block = await PROVIDER.getBlock(event.blockNumber);
 
@@ -121,7 +122,6 @@ export async function getAllDeposits(
     };
   }
   console.log(response);
-  sendNotification("new transaction received");
 
   return { success: true, data: response.data, statusCode: 201 };
 }
