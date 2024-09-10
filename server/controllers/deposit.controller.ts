@@ -22,6 +22,10 @@ export async function putDeposit() {
 
   depositContract.on("DepositEvent", async (event) => {
     try {
+      if (!event.args) {
+        console.log(typeof event)
+        return;
+      }
       const { pubkey, withdrawal_credentials, amount, signature, index } =
         event.args;
       console.log(
@@ -44,16 +48,19 @@ export async function putDeposit() {
       if (!response.success) {
         console.log({ status: 500, data: "failed", error: response.message });
       }
+      sendNotification(`new transaction received: 
+                        blockNumber: ${deposit.blockNumber}
+                        blockTimestamp: ${deposit.blockTimestamp}
+                        pubkey:${deposit.pubkey}`);
       console.log(response);
     } catch (error) {
-      console.log(error);
+      console.log("some thing went wrong");
     }
   });
 }
 
 export async function putAllDepositsInBatches() {
-  const startBlock = 20713988; // starting from this transaction https://etherscan.io/tx/0xdca45faff0b458d3d1915b18ad0e41f4d36e81c584307b2446694219a9ed27e0
-
+  const startBlock = 20716574; // starting from this transaction
   const depositContract = new ethers.Contract(
     process.env.BEACON_DEPOSIT_CONTRACT_ADDR!,
     depositABI,
@@ -69,8 +76,11 @@ export async function putAllDepositsInBatches() {
     startBlock,
     latestBlock
   );
-  const deposits = [];
   // Process each deposit event
+
+  
+  // Execute all the promises in parallel
+  const deposits = []
   for (const event of depositEvents) {
     const block = await PROVIDER.getBlock(event.blockNumber);
 
@@ -111,7 +121,7 @@ export async function getAllDeposits(
     };
   }
   console.log(response);
-  sendNotification("new transaction received")
+  sendNotification("new transaction received");
 
   return { success: true, data: response.data, statusCode: 201 };
 }

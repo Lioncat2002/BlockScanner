@@ -14,13 +14,6 @@ export default function Home() {
   const [deposits, setDeposits] = useState<BaseDeposit[]>([]);
   // Event Listener for Deposits
   useEffect(() => {
-    async function putDepositsFromInfura() {
-      const response = await putAllDepositsInBatches();
-      console.log(response);
-    }
-    putDepositsFromInfura();
-    putDeposit();
-
     async function getAllDepositsFromServer() {
       const response = await getAllDeposits(0, 100);
       if (!response.success) {
@@ -30,6 +23,14 @@ export default function Home() {
       setDeposits(response.data);
     }
     getAllDepositsFromServer();
+    async function putDepositsFromInfura() {
+      const response = await putAllDepositsInBatches();
+      console.log(response);
+    }
+    putDepositsFromInfura();
+    putDeposit();
+
+    
   }, []);
   console.log(deposits);
   return (
