@@ -1,11 +1,11 @@
 {
-  "name": "luganodes-sde-task",
+  "name": "luganodes-sde-task-blockscan",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbo -p 8080",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 8080",
     "lint": "next lint"
   },
   "dependencies": {
